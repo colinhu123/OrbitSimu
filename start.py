@@ -24,7 +24,7 @@ Anyway, this will be a long term project to entertain myself.
 
 #some physical constant
 dt = 0.1
-Me = 5.97237*10**24
+Me = 5.97237*(10**24)
 Re = 6371000
 G = 6.674*10**(-11)
 
@@ -35,14 +35,7 @@ S = 1.5
 DIMENSION = 2
 
 ##math part
-def modulus(p):
-    ADD = 0
-    mod = 0
-    for i in range(len(p)):
-        ADD = ADD + p[i]**2
-    if ADD >= 0:
-        mod = ADD**0.5
-    return mod
+
 
 def CrossProduct(a1,a2):
     i,j,k = 0,0,0
@@ -75,10 +68,8 @@ def air_density(height):
 
 def accel(p):
     if len(p) == DIMENSION:
-        l = modulus(p)
-        a = -Me*G/(l**3)*p
-        print(l)
-        print(p)
+        l1 = np.linalg.norm(p)
+        a = -Me*G/(l1**3)*p
         return a
     else:
         print('What are you fucking doing!')
