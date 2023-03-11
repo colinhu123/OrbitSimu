@@ -18,6 +18,8 @@ at the speed of 2500m/s
 Ignore the attitude of the spacecraft and it can hold high temperature
 
 All simulation are in 3D. Anyway, in 2D at firts >_<
+
+Anyway, this will be a long term project to entertain myself.
 '''
 
 #some physical constant
@@ -74,9 +76,6 @@ def air_density(height):
 def accel(p):
     if len(p) == DIMENSION:
         l = modulus(p)
-        #if l == 0:
-        #    time.sleep(30)
-        print(p)
         a = -Me*G/(l**3)*p
         print(l)
         print(p)
@@ -104,6 +103,43 @@ def NextStep(p,v):
     else:
         print('What the hell you are input!')
 
+'''
+def loop(r0x,r0y,v0x,v0y):
+    ##
+    k1r = [v0x,v0y]
+    k1v = acceleration(r0x,r0y)
+    ##
+    k2r = [v0x+k1v[0]*0.5*dt,v0y+k1v[1]*0.5*dt]
+    k2v = acceleration(r0x+k1r[0]*0.5*dt,r0y+k1r[1]*0.5*dt)
+    ##
+    k3r = [v0x+k2v[0]*0.5*dt,v0y+k2v[1]*0.5*dt]
+    k3v = acceleration(r0x + k2r[0] * dt*0.5, r0y + k2r[1]*dt*0.5)
+    ##
+    k4r = [v0x+k3v[0]*dt,v0y+k3v[1]*dt]
+    k4v = acceleration(r0x + k3r[0]*dt,r0y + k3r[1]*dt)
+    #####
+    rx = r0x + dt/6*(k1r[0] + 2 * k2r[0] + 2  *k3r[0] + k4r[0])
+    ry = r0y + dt/6*(k1r[1] + 2 * k2r[1] + 2 * k3r[1] + k4r[1])
+    vx = v0x + dt/6*(k1v[0] + 2 * k2v[0] + 2 * k3v[0] + k4v[0])
+    vy = v0y + dt/6*(k1v[1] + 2 * k2v[1] + 2 * k3v[1] + k4v[1])
+
+    v = (vx**2+vy**2)**0.5
+    return [rx,ry,vx,vy,v]
+
+def acceleration(x,y):
+    global a_thrust_x
+    global a_thrust_y
+    global direction
+    global v0x
+    global v0y
+    x = x/1000
+    y = y/1000
+    rsquare = x**2+y**2
+    distance = rsquare**0.5
+    a = GM_10M6/rsquare
+    result = [(a)/distance*(-x)-a_thrust_x,(a)/distance*(-y)-a_thrust_y]
+    return result
+'''
 def trans(Pos):
     posx = []
     posy = []
