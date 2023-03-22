@@ -30,25 +30,51 @@ G = 6.674*10**(-11)
 
 #some features of the spacecraft
 S = 1.5
+Cd = 0.3
+Cl = 0.7
+M = 500 ##kilogram
 
 #some constant for programming
 DIMENSION = 2
 
 ##math part
-
-
 def CrossProduct(a1,a2):
     i,j,k = 0,0,0
     if len(a1) == DIMENSION and len(a2) == DIMENSION:
         i = a1[1]*a2[3] - a1[3]*a2[1]
         j = a1[2]*a2[0] - a1[0]*a2[2]
         k = a1[0]*a2[1] - a1[1]*a2[0]
-    Re = np.array([i,j,k])
-    return Re
+    Res = np.array([i,j,k])
+    return Res
+
+def FindperpenVec(p):
+    if len(p) == DIMENSION:
+        x = p[0]
+        y = p[1]
+        Result = np.array([y,x])
+        Res = Result/(np.linalg.norm(Result))
+        return Res
 
 
+def GetHeight(p):
+    k = np.linalg.norm(p)
+    h = k - Re
+    return h
+
+def CalAirForce(p,v):
+    h = GetHeight(p)
+    rou = air_density(h)
+    nor_side = FindperpenVec(v)
+    back_side = -v/(np.linalg.norm(v))
+    drag = 0.5*rou*Cd*S*(np.linalg.norm(v))**2
+    lift = 0.5*rou*Cl*S*(np.linalg.norm(v))**2
+    drag_a = drag/M*back_side
+    lift_a = lift/M*nor_side
+    a = drag_a+lift_a
+    return a
 
 def air_density(height):
+    density = 0
     if height >= 0:
         if height < 11000:
             T = 15.04-0.00649*height
@@ -66,10 +92,11 @@ def air_density(height):
     return density
 
 
-def accel(p):
+def accel(p,v):
     if len(p) == DIMENSION:
         l1 = np.linalg.norm(p)
-        a = -Me*G/(l1**3)*p
+        a_air = CalAirForce(p,v)
+        a = -Me*G/(l1**3)*p + a_air
         return a
     else:
         print('What are you fucking doing!')
@@ -77,16 +104,16 @@ def accel(p):
 def NextStep(p,v):
     if len(p) == DIMENSION and len(v) == DIMENSION:
         p1_ = v
-        v1_ = accel(p)
+        v1_ = accel(p,v)
 
         p2_ = v+v1_*0.5*dt
-        v2_ = accel(p+v1_*0.5*dt)
+        v2_ = accel(p+p1_*0.5*dt,v+v1_*0.5*dt)
 
         p3_ = v+v2_*0.5*dt
-        v3_ = accel(p+p2_*0.5*dt)
+        v3_ = accel(p+p2_*0.5*dt,v+v2_*0.5*dt)
 
         p4_ = v + v3_*dt
-        v4_ = accel(p+p3_*dt)
+        v4_ = accel(p+p3_*dt,v+v3_*dt)
 
         p0 = p +dt*(p1_+2*p2_+2*p3_+p4_)/6
         v0 = v + dt*(v1_+2*v2_+2*v3_+v4_)/6
@@ -150,10 +177,16 @@ def Simu(p,v,T):
         Pos.append(p2)
         Vel.append(v2)
         time = np.append(time,dt*(i+1))
+        if np.linalg.norm(p2) <= 6371000:
+            print('Crashing the ground at:',time[-1])
+            break
     
     if len(Pos) == len(Vel) and len(Pos) == len(time):
         px,py = trans(Pos)
         return px, py, Vel, time
+
+
+
 
 '''
 p0 = np.array([0,6600000])

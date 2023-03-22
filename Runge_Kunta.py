@@ -9,7 +9,7 @@ EARTH_RADIUS = 6371000    #unit meter
 pi = 3.141592653589793
 
 mass_satellite = 11000    #kg
-time = 40000
+time = 180000
 direction = 0  ##0 refers to thrust to back   ###  1 refers to thrust forward
 Tline = 0
 massstart  =865800
@@ -121,7 +121,7 @@ def CAc(x,y):
 r0x = 6671200
 r0y = 0
 v0x = 0
-v0y =10900
+v0y =1000
 #####
 ##### ouput 
 position_x =[]
