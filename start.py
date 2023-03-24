@@ -47,10 +47,12 @@ def CrossProduct(a1,a2):
     Res = np.array([i,j,k])
     return Res
 
+# here has some problems to identify the direction of the lifting force
+
 def FindperpenVec(p):
     if len(p) == DIMENSION:
         x = p[0]
-        y = p[1]
+        y = -p[1]
         Result = np.array([y,x])
         Res = Result/(np.linalg.norm(Result))
         return Res
@@ -68,8 +70,13 @@ def CalAirForce(p,v):
     back_side = -v/(np.linalg.norm(v))
     drag = 0.5*rou*Cd*S*(np.linalg.norm(v))**2
     lift = 0.5*rou*Cl*S*(np.linalg.norm(v))**2
+    if np.linalg.norm(p+100*nor_side) > np.linalg.norm(p-100*nor_side):
+        lift_a = lift/M*nor_side
+    if np.linalg.norm(p+100*nor_side) < np.linalg.norm(p-100*nor_side):
+        lift_a = -lift/M*nor_side
+    if np.linalg.norm(p+100*nor_side) == np.linalg.norm(p-100*nor_side):
+        lift_a = np.array([0,0])
     drag_a = drag/M*back_side
-    lift_a = lift/M*nor_side
     a = drag_a+lift_a
     return a
 
