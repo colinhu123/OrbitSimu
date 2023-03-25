@@ -30,9 +30,10 @@ G = 6.674*10**(-11)
 
 #some features of the spacecraft
 S = 1.5
-Cd = 0.3
+Cd = 1.2
 Cl = 0.7
 M = 500 ##kilogram
+VELOCITY = 2500
 
 #some constant for programming
 DIMENSION = 2
@@ -47,7 +48,7 @@ def CrossProduct(a1,a2):
     Res = np.array([i,j,k])
     return Res
 
-# here has some problems to identify the direction of the lifting force
+
 
 def FindperpenVec(p):
     if len(p) == DIMENSION:
@@ -98,29 +99,51 @@ def air_density(height):
     
     return density
 
+#Here are some serious problems, even related to the whole framwork of this project,(from 2DOF to 3DOF and even change NextStep())
+def thrust(lis,t,mass):
+    Thrust = 0
+    for i in range(len(lis)-1):
+        if t <= lis[-1][0]:
+            if t >= lis[i][0] and t <= lis[i+1][0]:
+                a1 = lis[i][0]
+                b1 = lis[i][1]
+                a2 = lis[i+1][0]
+                b2 = lis[i+1][1]
+                Thrust = (b2-b1)/(a2-a1)*(t-a1)+b1
+                break
+        if t<0:
+            print('Fucking asshole!')
+        else:
+            Thrust = 0
+    mass = mass - Thrust/VELOCITY*dt
+    return Thrust,mass
 
-def accel(p,v):
+
+
+def accel(p,v,t):
     if len(p) == DIMENSION:
         l1 = np.linalg.norm(p)
         a_air = CalAirForce(p,v)
-        a = -Me*G/(l1**3)*p + a_air
+        #a_thrust = thrust([(0,0),(500,0),(520,30),(540,0)],t)/M ###喷气的计算过程漏洞百出。1 质量更新  2 矢量推力设置 3 调和时域
+
+        a = -Me*G/(l1**3)*p + a_air 
         return a
     else:
         print('What are you fucking doing!')
 
-def NextStep(p,v):
+def NextStep(p,v,t):
     if len(p) == DIMENSION and len(v) == DIMENSION:
         p1_ = v
-        v1_ = accel(p,v)
+        v1_ = accel(p,v,t)
 
         p2_ = v+v1_*0.5*dt
-        v2_ = accel(p+p1_*0.5*dt,v+v1_*0.5*dt)
+        v2_ = accel(p+p1_*0.5*dt,v+v1_*0.5*dt,t+0.5*dt)
 
         p3_ = v+v2_*0.5*dt
-        v3_ = accel(p+p2_*0.5*dt,v+v2_*0.5*dt)
+        v3_ = accel(p+p2_*0.5*dt,v+v2_*0.5*dt,t+0.5*dt)
 
         p4_ = v + v3_*dt
-        v4_ = accel(p+p3_*dt,v+v3_*dt)
+        v4_ = accel(p+p3_*dt,v+v3_*dt,t+dt)
 
         p0 = p +dt*(p1_+2*p2_+2*p3_+p4_)/6
         v0 = v + dt*(v1_+2*v2_+2*v3_+v4_)/6
@@ -128,43 +151,12 @@ def NextStep(p,v):
     else:
         print('What the hell you are input!')
 
-'''
-def loop(r0x,r0y,v0x,v0y):
-    ##
-    k1r = [v0x,v0y]
-    k1v = acceleration(r0x,r0y)
-    ##
-    k2r = [v0x+k1v[0]*0.5*dt,v0y+k1v[1]*0.5*dt]
-    k2v = acceleration(r0x+k1r[0]*0.5*dt,r0y+k1r[1]*0.5*dt)
-    ##
-    k3r = [v0x+k2v[0]*0.5*dt,v0y+k2v[1]*0.5*dt]
-    k3v = acceleration(r0x + k2r[0] * dt*0.5, r0y + k2r[1]*dt*0.5)
-    ##
-    k4r = [v0x+k3v[0]*dt,v0y+k3v[1]*dt]
-    k4v = acceleration(r0x + k3r[0]*dt,r0y + k3r[1]*dt)
-    #####
-    rx = r0x + dt/6*(k1r[0] + 2 * k2r[0] + 2  *k3r[0] + k4r[0])
-    ry = r0y + dt/6*(k1r[1] + 2 * k2r[1] + 2 * k3r[1] + k4r[1])
-    vx = v0x + dt/6*(k1v[0] + 2 * k2v[0] + 2 * k3v[0] + k4v[0])
-    vy = v0y + dt/6*(k1v[1] + 2 * k2v[1] + 2 * k3v[1] + k4v[1])
 
-    v = (vx**2+vy**2)**0.5
-    return [rx,ry,vx,vy,v]
 
-def acceleration(x,y):
-    global a_thrust_x
-    global a_thrust_y
-    global direction
-    global v0x
-    global v0y
-    x = x/1000
-    y = y/1000
-    rsquare = x**2+y**2
-    distance = rsquare**0.5
-    a = GM_10M6/rsquare
-    result = [(a)/distance*(-x)-a_thrust_x,(a)/distance*(-y)-a_thrust_y]
-    return result
-'''
+
+
+
+
 def trans(Pos):
     posx = []
     posy = []
@@ -180,10 +172,10 @@ def Simu(p,v,T):
     time = np.array([0])
     period = int(T/dt)
     for i in range(period):
-        p2,v2 = NextStep(Pos[-1],Vel[-1])
+        time = np.append(time,dt*(i+1))
+        p2,v2 = NextStep(Pos[-1],Vel[-1],int(time[-1]))
         Pos.append(p2)
         Vel.append(v2)
-        time = np.append(time,dt*(i+1))
         if np.linalg.norm(p2) <= 6371000:
             print('Crashing the ground at:',time[-1])
             break

@@ -6,7 +6,7 @@ This project focuses on building a platform to be expandable to contain many fac
 
 1. improve visualization platform (draw the Earth) --finished(have introduced in earth)
 
-2. improve the process of drawing
+2. improve the process of drawing -finished
 
 2. introduce function of thrusting
 
