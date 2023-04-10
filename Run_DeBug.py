@@ -1,10 +1,10 @@
 from start import *
 
 
-p0 = np.array([0,6429000])
+p0 = np.array([0,6459000])
 v0 = np.array([-9000,0])
 
-T = 8000
+T = 14000
 Px,Py,Vel,tim = Simu(p0,v0,T)
 
 fig, ax = plt.subplots()
