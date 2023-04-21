@@ -28,7 +28,7 @@ k = calc(2,3)
 print(k.add())
 print(k.c)
 
-'''
+
 
 from math import *
 
@@ -45,6 +45,19 @@ pressureTrop = 2116 * ((TempTrop + 459.7) / 518.6)**5.256
 pressureStrat = 473.1 * exp(1.73 - 0.000048  * altitude)
 
 
+'''
 
+import numpy as np
+from math import *
 
+pi = 3.1415926535
 
+a = np.array([5,0])
+
+def rotation(beta,vec):
+    x = vec[0]*cos(beta)-vec[1]*sin(beta)
+    y = vec[0]*sin(beta) + vec[1]*cos(beta)
+    ans = np.array([x,y])
+    return ans
+
+print(rotation(pi/2,a))

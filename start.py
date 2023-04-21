@@ -14,12 +14,17 @@ the ground.
 
 Lift coefficient should be 0.7 and drag coefficient should be 0.3
 Spacecraft's net mass is 500kg with 200kg fuel which can be jetted out
-at the speed of 2500m/s
+at the speed of 5500m/s
 Ignore the attitude of the spacecraft and it can hold high temperature
 
 All simulation are in 3D. Anyway, in 2D at firts >_<
 
 Anyway, this will be a long term project to entertain myself.
+
+
+define:
+anticlockwise is the positive rotation direction
+
 '''
 
 #some physical constant
@@ -48,8 +53,6 @@ def CrossProduct(a1,a2):
     Res = np.array([i,j,k])
     return Res
 
-
-
 def FindperpenVec(p):
     if len(p) == DIMENSION:
         x = p[0]
@@ -58,28 +61,60 @@ def FindperpenVec(p):
         Res = Result/(np.linalg.norm(Result))
         return Res
 
+def rotation(beta,vec):
+    '''
+    beta is the transition angle
+    vector is translated one
+    '''
+    x = vec[0]*cos(beta)-vec[1]*sin(beta)
+    y = vec[0]*sin(beta) + vec[1]*cos(beta)
+    ans = np.array([x,y])
+    return ans
+
 
 def GetHeight(p):
     k = np.linalg.norm(p)
     h = k - Re
     return h
 
-def CalAirForce(p,v):
+def CalAirForce(p,v,AOA):
     h = GetHeight(p)
     rou = air_density(h)
-    nor_side = FindperpenVec(v)
-    back_side = -v/(np.linalg.norm(v))
-    drag = 0.5*rou*Cd*S*(np.linalg.norm(v))**2
-    lift = 0.5*rou*Cl*S*(np.linalg.norm(v))**2
-    if np.linalg.norm(p+100*nor_side) > np.linalg.norm(p-100*nor_side):
-        lift_a = lift/M*nor_side
-    if np.linalg.norm(p+100*nor_side) < np.linalg.norm(p-100*nor_side):
-        lift_a = -lift/M*nor_side
-    if np.linalg.norm(p+100*nor_side) == np.linalg.norm(p-100*nor_side):
-        lift_a = np.array([0,0])
+    nor_side = FindperpenVec(rotation(AOA,v))
+    back_side = -rotation(AOA,v)/(np.linalg.norm(v))
+    drag = 0.5*rou*CoefficientAOA(AOA,1)*S*(np.linalg.norm(v))**2
+    lift = 0.5*rou*CoefficientAOA(AOA,0)*S*(np.linalg.norm(v))**2
+    if AOA <= 0:
+        if np.linalg.norm(p+100*nor_side) > np.linalg.norm(p-100*nor_side):
+            lift_a = lift/M*nor_side
+        if np.linalg.norm(p+100*nor_side) < np.linalg.norm(p-100*nor_side):
+            lift_a = -lift/M*nor_side
+        if np.linalg.norm(p+100*nor_side) == np.linalg.norm(p-100*nor_side):
+            lift_a = np.array([0,0])
+    if AOA > 0:
+        if np.linalg.norm(p+100*nor_side) < np.linalg.norm(p-100*nor_side):
+            lift_a = lift/M*nor_side
+        if np.linalg.norm(p+100*nor_side) > np.linalg.norm(p-100*nor_side):
+            lift_a = -lift/M*nor_side
+        if np.linalg.norm(p+100*nor_side) == np.linalg.norm(p-100*nor_side):
+            lift_a = np.array([0,0])
     drag_a = drag/M*back_side
     a = drag_a+lift_a
     return a
+
+
+def CoefficientAOA(AOA,state):
+    '''
+    state 0: Coefficient of lift
+    state 1: Coefficient of drag
+    '''
+    if state == 0:
+        Cl = 0.4*sin(4.5*AOA)+0.05
+        return Cl
+    if state == 1:
+        Cd = abs(0.01 + 20*AOA**3)
+        return Cd
+
 
 def air_density(height):
     density = 0
@@ -100,7 +135,11 @@ def air_density(height):
     return density
 
 #Here are some serious problems, even related to the whole framwork of this project,(from 2DOF to 3DOF and even change NextStep())
-def thrust(lis,t,mass):
+def thrust(lis,lisgam,t,mass):
+    '''
+    lis is the profile of thrust magnitude
+    lisgam is the profile of gambling angle 
+    '''
     Thrust = 0
     for i in range(len(lis)-1):
         if t <= lis[-1][0]:
@@ -115,6 +154,18 @@ def thrust(lis,t,mass):
             print('Fucking asshole!')
         else:
             Thrust = 0
+        if t <= lisgam[-1][0]:
+            if t >= lisgam[i][0] and t <= lisgam[i+1][0]:
+                a1 = lisgam[i][0]
+                b1 = lisgam[i][1]
+                a2 = lisgam[i+1][0]
+                b2 = lisgam[i+1][1]
+                Thrustgam = (b2-b1)/(a2-a1)*(t-a1)+b1
+                break
+        if t<0:
+            print('Fucking asshole!')
+        else:
+            Thrustgam = 0
     mass = mass - Thrust/VELOCITY*dt
     return Thrust,mass
 
@@ -131,7 +182,7 @@ def accel(p,v,t):
     else:
         print('What are you fucking doing!')
 
-def NextStep(p,v,t):
+def NextStep(p,v,AOA,t):
     if len(p) == DIMENSION and len(v) == DIMENSION:
         p1_ = v
         v1_ = accel(p,v,t)
