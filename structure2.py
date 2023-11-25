@@ -66,7 +66,7 @@ class Spacecraft:
             else:
                 Thrustgam = 0
         self.mass = self.mass - Thrust/VELOCITY*dt
-        Thrust_vec = self.rotation(self.AOA+Thrustgam,self.velocity)/np.linalg.norm(self.velocity)*Thrust
+        Thrust_vec = self.rotation(self.AOA-Thrustgam,self.velocity)/np.linalg.norm(self.velocity)*Thrust
         self.moment = Thrust*0.5*self.length*sin(-Thrustgam)
         return Thrust_vec
 
@@ -107,12 +107,12 @@ class Spacecraft:
         '''
         if state == 0:
             if self.AOA < 0.34906585 and self.AOA > -0.34906585:
-                Cl = 0.3*sin(4.5*self.AOA)+0.05
+                Cl = 0.3*sin(4.5*self.AOA)+0.1
             elif self.AOA > 0.34906585:
-                Cl = 0.3*cos(7*(self.AOA-pi/9))
+                Cl = 0.3*cos(7*(self.AOA-pi/9))+0.1
             return Cl
         if state == 1:
-            Cd = abs(0.6 + 8*self.AOA**3)
+            Cd = abs(0.3 + 8*self.AOA**3)
             return Cd
 
     
@@ -154,7 +154,7 @@ class Spacecraft:
         if len(p) == DIMENSION:
             l1 = np.linalg.norm(p)
             a_air = self.CalAirForce(p,v)
-            a_thrust = self.ThrustProfile([(0,0),(500,0),(520,30),(540,0)],[[0,0],[19,0],[20,0.3],[21,0]],t)/self.mass ###喷气的计算过程漏洞百出。1 质量更新  2 矢量推力设置 3 调和时域
+            a_thrust = self.ThrustProfile([(0,0),(500,0),(520,150),(540,0)],[[0,0],[500,0],[520,0.4],[550,0]],t)/self.mass ###喷气的计算过程漏洞百出。1 质量更新  2 矢量推力设置 3 调和时域
 
             a = -Me*G/(l1**3)*p + a_air +a_thrust
             return a
@@ -183,13 +183,16 @@ class Spacecraft:
             alpha = self.moment/self.I
             betta = self.omega*dt + 0.5*alpha*dt**2
             self.omega = self.omega + dt*alpha
-            self.AOA = self.AOA + betta
+            self.AOA = self.AOA - betta
+            self.AOA = self.AOA%(2*pi)
         else:
             print('What the hell you are input!')
 
     def Simulation(self,Tfinal):
         Pos = [self.position]
         Vel = [self.velocity]
+        AO = [self.AOA]
+        ml = [self.mass]
         time = np.array([0])
         period = int(Tfinal/dt)
         for i in range(period):
@@ -197,13 +200,15 @@ class Spacecraft:
             self.NextStep()
             Pos.append(self.position)
             Vel.append(self.velocity)
+            AO.append(self.AOA)
+            ml.append(self.mass)
             if np.linalg.norm(self.position) <= 6371000:
                 print('Crashing the ground at:',time[-1])
                 break
     
         if len(Pos) == len(Vel) and len(Pos) == len(time):
             px,py = self.trans(Pos)
-            return px, py, Vel, time
+            return px, py, Vel, time,AO,ml
         
 
 
