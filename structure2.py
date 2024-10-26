@@ -2,7 +2,7 @@ import numpy as np
 from math import *
 
 
-dt = 0.1 #second
+dt = 1 #second
 OUTLET_VELOCITY = 3500 #meter per second
 EARTH_RADIUS = 6371000
 EARTH_MASS = 5.97237*(10**24)
@@ -131,7 +131,7 @@ class Spacecraft:
         S = self.ang_pos
         v = self.velocity
         AOA = np.arccos(np.dot(S,v)/(np.linalg.norm(S)*np.linalg.norm(v)))
-        self.AOA = AOA
+        self.AOA = AOA % (2*np.pi)
         S = np.append(S,0)
         v = np.append(v,0)
         z = np.cross(v,S)[2]
@@ -162,10 +162,8 @@ class Spacecraft:
             self.gravityGrad()
             a_earth = self.earthGravi(np.array([0,0]))
             a_air = self.aeroForce()
-            #a_air = self.CalAirForce(p,v)
-            #a_thrust = self.ThrustProfile([(0,0),(500,0),(520,150),(540,0)],[[0,0],[500,0],[520,0.4],[550,0]],t)/self.mass ###喷气的计算过程漏洞百出。1 质量更新  2 矢量推力设置 3 调和时域
 
-            a = a_earth + a_air #"+a_thrust"
+            a = a_earth + a_air 
             return a
         else:
             print('What are you fucking doing!')
@@ -210,7 +208,8 @@ class Spacecraft:
         else:
             print('What the hell you are input!')
 
-    def Simulation(self,Tfinal):
+    def Simulation(self,Tfinal,save_config):
+        name = save_config
         Pos = [self.position]
         Vel = [self.velocity]
         AO = [self.AOA]
@@ -227,10 +226,17 @@ class Spacecraft:
             if np.linalg.norm(self.position) <= 6371000:
                 print('Crashing the ground at:',time[-1])
                 break
+        
     
         if len(Pos) == len(Vel) and len(Pos) == len(time):
             px,py = self.trans(Pos)
+            np.save(save_config+"_x.npy",px)
+            np.save(save_config+"_y.npy",py)
+            np.save(save_config+"_velo.npy",Vel)
+            np.save(save_config+"_time.npy",time)
+            np.save(save_config+"_mass.npy",ml)
             return px, py, Vel, time,AO,ml
+        
         
 
 

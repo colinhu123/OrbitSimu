@@ -73,5 +73,3 @@ def Gnereration(Magnitude,degree):
     y = Magnitude*np.sin(rad)
     return np.array([x,y])
 
-
-
