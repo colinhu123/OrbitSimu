@@ -2,10 +2,6 @@
 
 This project focuses on building a platform to be expandable to contain many factors. So far, developer have been testing gravitation force and aerodynamics forces, drag and lifting force. 
 
-## Hi! Long time no see!
-
-How's everything going? The developer of this project has just finished mid-term exam and he has managed to survive the difficult exam papers.
-
 
 
 ## Future Plan

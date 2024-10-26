@@ -49,6 +49,7 @@ pressureStrat = 473.1 * exp(1.73 - 0.000048  * altitude)
 
 import numpy as np
 from math import *
+import matplotlib.pyplot as plt
 
 pi = 3.1415926535
 
@@ -61,3 +62,27 @@ def rotation(beta,vec):
     return ans
 
 print(rotation(pi/2,a))
+
+        
+def CoefAOA(AOA):
+    Cl = np.array([])
+    Cd = np.array([])
+    for i in range(len(AOA)):
+        AOAs = AOA[i]
+        if AOAs < 0.34906585 and AOAs >-0.34906585:
+            Cls = 0.3*sin(4.5*AOAs)+0.1
+        elif AOAs > 0.34906585:
+            Cls = 0.3*cos(7*(AOAs-pi/9))+0.1
+        Cl = np.append(Cl,Cls)
+        Cd = np.append(Cd,abs(0.3 + 8*AOAs**3))
+    return (Cl,Cd)
+
+AOA = np.linspace(-0.3,1.7,200)
+
+(LiftCoef,DragCoef) = CoefAOA(AOA)
+plt.plot(AOA/np.pi*180,LiftCoef,color = "red",linewidth = 2)
+plt.plot(AOA/np.pi*180,DragCoef,color = "blue",linewidth = 2)
+plt.grid()
+plt.xlabel("Angle of Attacks")
+plt.ylabel("Coefficient")
+plt.show()
